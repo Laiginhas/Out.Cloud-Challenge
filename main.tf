@@ -1,9 +1,57 @@
+variable "instance_type" {
+  default     = "t2.micro"
+  description = "EC2 instance type"
+}
+
+variable "key_name" {
+  description = "EC2 Key Pair name"
+}
+
+resource "aws_security_group" "wordpress_sg" {
+  name        = "wordpress_sg"
+  description = "Allow HTTP, HTTPS and SSH"
+
+  ingress = [
+    {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["89.155.0.15/32"]
+      description = "SSH"
+    },
+    {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "HTTP"
+    },
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "HTTPS"
+    }
+  ]
+
+  egress = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "Allow all outbound"
+    }
+  ]
+}
+
 resource "aws_instance" "wordpress" {
   ami                         = "ami-0c02fb55956c7d316"
   instance_type               = var.instance_type
   key_name                    = var.key_name
   vpc_security_group_ids      = [aws_security_group.wordpress_sg.id]
-  associate_public_ip_address = false 
+  associate_public_ip_address = false
   iam_instance_profile        = aws_iam_instance_profile.cloudwatch_instance_profile.name
 
   user_data = <<-EOF
