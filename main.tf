@@ -1,12 +1,3 @@
-variable "instance_type" {
-  default     = "t2.micro"
-  description = "EC2 instance type"
-}
-
-variable "key_name" {
-  description = "EC2 Key Pair name"
-}
-
 resource "aws_security_group" "wordpress_sg" {
   name        = "wordpress_sg"
   description = "Allow HTTP, HTTPS and SSH"
