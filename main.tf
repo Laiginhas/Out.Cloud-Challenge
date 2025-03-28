@@ -51,6 +51,14 @@ resource "aws_instance" "wordpress" {
               systemctl enable httpd
               systemctl start httpd
 
+              systemctl enable mariadb
+              systemctl start mariadb
+
+              mysql -e "CREATE DATABASE wp_landing_db;"
+              mysql -e "CREATE USER 'wp_ricardo'@'localhost' IDENTIFIED BY 'W0rdPr3ssRic2024!';"
+              mysql -e "GRANT ALL PRIVILEGES ON wp_landing_db.* TO 'wp_ricardo'@'localhost';"
+              mysql -e "FLUSH PRIVILEGES;"
+
               cd /var/www/html
               wget https://wordpress.org/latest.tar.gz
               tar -xzf latest.tar.gz
@@ -59,10 +67,8 @@ resource "aws_instance" "wordpress" {
               chmod -R 755 /var/www/html
               rm -rf wordpress latest.tar.gz
 
-              # Instalar CloudWatch Agent
               yum install -y amazon-cloudwatch-agent
 
-              # Criar config mínima
               cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << CONFIG
               {
                 "metrics": {
