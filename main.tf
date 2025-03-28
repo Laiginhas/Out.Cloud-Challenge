@@ -47,28 +47,40 @@ resource "aws_instance" "wordpress" {
               #!/bin/bash
               yum update -y
               amazon-linux-extras enable php7.4
-              yum install -y httpd php php-mysqlnd mariadb
+              yum install -y httpd php php-mysqlnd mariadb unzip wget
+
               systemctl enable httpd
               systemctl start httpd
 
               systemctl enable mariadb
               systemctl start mariadb
 
-              mysql -e "CREATE DATABASE wp_landing_db;"
+              # Criar base de dados e utilizador
+              mysql -e "CREATE DATABASE wp_landing_db DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
               mysql -e "CREATE USER 'wp_ricardo'@'localhost' IDENTIFIED BY 'W0rdPr3ssRic2024!';"
               mysql -e "GRANT ALL PRIVILEGES ON wp_landing_db.* TO 'wp_ricardo'@'localhost';"
               mysql -e "FLUSH PRIVILEGES;"
 
+              # Instalar WordPress
               cd /var/www/html
               wget https://wordpress.org/latest.tar.gz
               tar -xzf latest.tar.gz
               cp -r wordpress/* .
-              chown -R apache:apache /var/www/html
-              chmod -R 755 /var/www/html
               rm -rf wordpress latest.tar.gz
 
-              yum install -y amazon-cloudwatch-agent
+              # Criar wp-config.php automaticamente
+              cp wp-config-sample.php wp-config.php
+              sed -i "s/database_name_here/wp_landing_db/" wp-config.php
+              sed -i "s/username_here/wp_ricardo/" wp-config.php
+              sed -i "s/password_here/W0rdPr3ssRic2024!/" wp-config.php
+              sed -i "s/localhost/localhost/" wp-config.php
 
+              # Corrigir permissões
+              chown -R apache:apache /var/www/html
+              chmod -R 755 /var/www/html
+
+              # Instalar e configurar CloudWatch Agent
+              yum install -y amazon-cloudwatch-agent
               cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << CONFIG
               {
                 "metrics": {
