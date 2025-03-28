@@ -1,64 +1,9 @@
-resource "aws_security_group" "wordpress_sg" {
-  name        = "wordpress_sg"
-  description = "Allow HTTP, HTTPS and SSH"
-
-  ingress = [
-    {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = ["89.155.0.15/32"]
-      description = "SSH"
-      ipv6_cidr_blocks = []
-      prefix_list_ids = []
-      security_groups = []
-      self = false
-    },
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "HTTP"
-      ipv6_cidr_blocks = []
-      prefix_list_ids = []
-      security_groups = []
-      self = false
-    },
-    {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "HTTPS"
-      ipv6_cidr_blocks = []
-      prefix_list_ids = []
-      security_groups = []
-      self = false
-    }
-  ]
-
-  egress = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Allow all outbound"
-      ipv6_cidr_blocks = []
-      prefix_list_ids = []
-      security_groups = []
-      self = false
-    }
-  ]
-}
-
 resource "aws_instance" "wordpress" {
   ami                         = "ami-0c02fb55956c7d316"
   instance_type               = var.instance_type
   key_name                    = var.key_name
   vpc_security_group_ids      = [aws_security_group.wordpress_sg.id]
-  associate_public_ip_address = true
+  associate_public_ip_address = false 
   iam_instance_profile        = aws_iam_instance_profile.cloudwatch_instance_profile.name
 
   user_data = <<-EOF
@@ -108,4 +53,13 @@ resource "aws_instance" "wordpress" {
   tags = {
     Name = "wordpress-instance"
   }
+}
+
+resource "aws_eip" "wordpress_eip" {
+  domain = "vpc"
+}
+
+resource "aws_eip_association" "wordpress_ip_assoc" {
+  instance_id   = aws_instance.wordpress.id
+  allocation_id = aws_eip.wordpress_eip.id
 }
