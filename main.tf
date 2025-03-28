@@ -2,39 +2,37 @@ resource "aws_security_group" "wordpress_sg" {
   name        = "wordpress_sg"
   description = "Allow HTTP, HTTPS and SSH"
 
-  ingress = [
-    {
+  ingress {
       from_port   = 22
       to_port     = 22
       protocol    = "tcp"
       cidr_blocks = ["89.155.0.15/32"]
       description = "SSH"
-    },
-    {
+    }
+
+  ingress {
       from_port   = 80
       to_port     = 80
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
       description = "HTTP"
-    },
-    {
+    }
+
+  ingress {
       from_port   = 443
       to_port     = 443
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
       description = "HTTPS"
     }
-  ]
 
-  egress = [
-    {
+  egress {
       from_port   = 0
       to_port     = 0
       protocol    = "-1"
       cidr_blocks = ["0.0.0.0/0"]
       description = "Allow all outbound"
     }
-  ]
 }
 
 resource "aws_instance" "wordpress" {
