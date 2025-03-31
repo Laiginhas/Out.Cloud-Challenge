@@ -9,7 +9,8 @@ resource "aws_cloudwatch_metric_alarm" "high_memory_usage" {
   threshold           = 80
   alarm_description   = "Dispara se a memória ultrapassar 80%"
   dimensions = {
-    InstanceId = aws_instance.wordpress.id
+    InstanceId = local.is_blue_active ? aws_instance.wordpress_blue[0].id : aws_instance.wordpress_green[0].id
+
   }
 
   actions_enabled = false
