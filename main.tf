@@ -124,3 +124,53 @@ resource "aws_eip_association" "wordpress_ip_assoc" {
   instance_id   = aws_instance.wordpress.id
   allocation_id = aws_eip.wordpress_eip.id
 }
+
+variable "active_environment" {
+  description = "Which environment should be live: blue or green"
+  type        = string
+  default     = "blue"
+}
+
+locals {
+  is_blue_active  = var.active_environment == "blue"
+  is_green_active = var.active_environment == "green"
+}
+
+# Instância Blue
+resource "aws_instance" "wordpress_blue" {
+  count                       = local.is_blue_active ? 1 : 0
+  ami                         = "ami-0c02fb55956c7d316"
+  instance_type               = "t2.micro"
+  key_name                    = "wordpress-key"
+  iam_instance_profile        = "cloudwatch-agent-instance-profile"
+  subnet_id                   = "subnet-..." 
+  vpc_security_group_ids      = ["${aws_security_group.wordpress_sg.id}"]
+  associate_public_ip_address = false
+  user_data                   = file("scripts/user_data.sh") 
+  tags = {
+    Name = "wordpress-blue"
+  }
+}
+
+# Instância Green
+resource "aws_instance" "wordpress_green" {
+  count                       = local.is_green_active ? 1 : 0
+  ami                         = "ami-0c02fb55956c7d316"
+  instance_type               = "t2.micro"
+  key_name                    = "wordpress-key"
+  iam_instance_profile        = "cloudwatch-agent-instance-profile"
+  subnet_id                   = "subnet-..." 
+  vpc_security_group_ids      = ["${aws_security_group.wordpress_sg.id}"]
+  associate_public_ip_address = false
+  user_data                   = file("scripts/user_data.sh")
+  tags = {
+    Name = "wordpress-green"
+  }
+}
+
+# Associação do EIP à instância ativa
+resource "aws_eip_association" "wordpress_ip_assoc" {
+  instance_id   = local.is_blue_active ? aws_instance.wordpress_blue[0].id : aws_instance.wordpress_green[0].id
+  allocation_id = aws_eip.wordpress_eip.id
+}
+
