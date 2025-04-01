@@ -96,7 +96,6 @@ locals {
   is_green_active = var.active_environment == "green"
 }
 
-# Instância Blue
 resource "aws_instance" "wordpress_blue" {
   count                       = local.is_blue_active ? 1 : 0
   ami                         = "ami-0c02fb55956c7d316"
@@ -112,7 +111,6 @@ resource "aws_instance" "wordpress_blue" {
   }
 }
 
-# Instância Green
 resource "aws_instance" "wordpress_green" {
   count                       = local.is_green_active ? 1 : 0
   ami                         = "ami-0c02fb55956c7d316"
@@ -128,9 +126,12 @@ resource "aws_instance" "wordpress_green" {
   }
 }
 
-# Associação do EIP à instância ativa
 resource "aws_eip_association" "wordpress_ip_assoc" {
   instance_id   = local.is_blue_active ? aws_instance.wordpress_blue[0].id : aws_instance.wordpress_green[0].id
   allocation_id = aws_eip.wordpress_eip.id
 }
 
+output "blue_instance_id" {
+  value       = local.is_blue_active ? aws_instance.wordpress_blue[0].id : ""
+  description = "ID of the blue instance"
+}
