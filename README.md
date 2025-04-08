@@ -1,6 +1,5 @@
 # WordPress Challenge – Out.Cloud
 
-## Instance ip - http://184.73.201.181/
 
 This project sets up a fully automated infrastructure on AWS to host a WordPress landing page, following best practices, automation, and scalability principles.
 
